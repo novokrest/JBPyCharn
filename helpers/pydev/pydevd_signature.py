@@ -123,10 +123,18 @@ def create_signature_message(signature, return_info=None):
     cmdTextList.append("</call_signature></xml>")
     cmdText = ''.join(cmdTextList)
 
-    # myfile = open('/home/user/txt', 'a')
-    # myfile.writelines(cmdText + '\n=====\n')
+    myfile = open('/home/user/txt', 'a')
+    myfile.writelines(cmdText + '\n=====\n')
 
     return NetCommand(CMD_SIGNATURE_CALL_TRACE, 0, cmdText)
+
+
+def isFirstCall(dbg, frame, filename):
+    if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename) and dbg.call_signature_cache_manager:
+        signature = dbg.signature_factory.create_signature(frame)
+        return dbg.call_signature_cache_manager.is_first_call(signature)
+    else:
+        return False
 
 
 def sendSignatureCallTrace(dbg, frame, filename):
@@ -144,11 +152,10 @@ def sendSignatureCallTrace(dbg, frame, filename):
 def sendSignatureReturnTrace(dbg, frame, filename, return_value):
     if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename):
         signature = dbg.signature_factory.create_signature(frame)
-        if return_value:
-            return_info = get_type_of_value(return_value)
-            if dbg.call_signature_cache_manager:
-                if not dbg.call_signature_cache_manager.is_repetition(signature, return_info):
-                    dbg.call_signature_cache_manager.add(signature, return_info)
-                    dbg.writer.addCommand(create_signature_message(signature, return_info))
-            else:
+        return_info = get_type_of_value(return_value)
+        if dbg.call_signature_cache_manager:
+            if not dbg.call_signature_cache_manager.is_repetition(signature, return_info):
+                dbg.call_signature_cache_manager.add_return_info(signature, return_info)
                 dbg.writer.addCommand(create_signature_message(signature, return_info))
+        else:
+            dbg.writer.addCommand(create_signature_message(signature, return_info))

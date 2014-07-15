@@ -11,28 +11,31 @@ def get_signature_info(signature):
 class CallSignatureCacheManager:
     def __init__(self, log=None):
         self.cache = {}
+        self.return_occurred = {}
         if log:
             self.log = log
         else:
             self.log = open('/home/user/cache_manager_stat', 'a')
 
-    def add(self, signature, return_info=None):
-        filename, function, args_type = get_signature_info(signature)
+    def add(self, signature):
+        filename, name, args_type = get_signature_info(signature)
 
         if not filename in self.cache:
             self.cache[filename] = {}
 
         module_calls = self.cache[filename]
 
-        if not function in module_calls:
-            module_calls[function] = {}
+        if not name in module_calls:
+            module_calls[name] = {}
 
-        function_calls = module_calls[function]
+        function_calls = module_calls[name]
 
         if not args_type in function_calls:
             function_calls[args_type] = {None: None}
 
-        function_calls[args_type][return_info] = None
+    def add_return_info(self, signature, return_info):
+        filename, name, args_type = get_signature_info(signature)
+        self.cache[filename][name][args_type][return_info] = None
 
     def is_repetition(self, signature, return_info=None):
         filename, function, args_type = get_signature_info(signature)
@@ -45,6 +48,13 @@ class CallSignatureCacheManager:
                     return True
 
         return False
+
+    def is_first_call(self, signature):
+        filename, name = get_signature_info(signature)[:-1]
+        if filename in self.cache and name in self.cache[filename]:
+            return False
+
+        return True
 
     def get_cache_size(self):
         return sys.getsizeof(self.cache)
