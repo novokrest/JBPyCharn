@@ -88,10 +88,6 @@ class PyDBFrame:
       mainDebugger.SetTraceForFrameAndParents(frame)
 
     def trace_dispatch(self, frame, event, arg):
-        #!!!!!
-        #print event.__str__() + ' ' + arg.__str__() + '\n'
-        #!!!!!
-
         mainDebugger, filename, info, thread = self._args
         try:
             info.is_tracing = True
@@ -104,12 +100,10 @@ class PyDBFrame:
                 return None
 
             if event == 'call':
-                #is_first_call = isFirstCall(mainDebugger, frame, filename)
+                is_first_call = isFirstCall(mainDebugger, frame, filename)
                 sendSignatureCallTrace(mainDebugger, frame, filename)
-                # if is_first_call:
-                #     return self.trace_dispatch
 
-            if event == 'return': #occurs for every call, arg is returned value
+            if event == 'return':
                 sendSignatureReturnTrace(mainDebugger, frame, filename, arg)
 
             if event not in ('line', 'call', 'return'):
@@ -121,6 +115,9 @@ class PyDBFrame:
                 else:
                 #I believe this can only happen in jython on some frontiers on jython and java code, which we don't want to trace.
                     return None
+
+            if is_first_call:
+                return self.trace_dispatch
 
             if event is not 'exception':
                 breakpoints_for_file = mainDebugger.breakpoints.get(filename)

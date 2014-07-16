@@ -3,7 +3,10 @@ import traceback
 
 from django_debug import DjangoLineBreakpoint
 from pydevd_signature import SignatureFactory
-from pydevd_call_signature_cache_manager import CallSignatureCacheManager
+#!!!!!
+from pydevd_signature_cache_manager import CallSignatureCacheManager
+from pydevd_signature_cache_manager import ReturnSignatureCacheManager
+#!!!!!
 from pydevd_frame import add_exception_to_frame
 import pydev_imports
 from pydevd_breakpoints import * #@UnusedWildImport
@@ -319,7 +322,10 @@ class PyDB:
         self._terminationEventSent = False
         self.force_post_mortem_stop = 0
         self.signature_factory = None
+        #!!!!!
         self.call_signature_cache_manager = None
+        self.return_signature_cache_manager = None
+        #!!!!!
         self.SetTrace = pydevd_tracing.SetTrace
 
         #this is a dict of thread ids pointing to thread ids. Whenever a command is passed to the java end that
@@ -1730,6 +1736,7 @@ if __name__ == '__main__':
 
             #!!!!!
             debugger.call_signature_cache_manager = CallSignatureCacheManager()
+            #debugger.return_signature_cache_manager = ReturnSignatureCacheManager()
             #!!!!!
 
 

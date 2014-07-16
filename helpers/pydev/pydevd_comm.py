@@ -174,6 +174,9 @@ ID_TO_MEANING = {
     '128':'CMD_SMART_STEP_INTO',
     '129': 'CMD_EXIT',
     '130': 'CMD_SIGNATURE_CALL_TRACE',
+    #!!!!!
+    '131': 'CMD_SIGNATURE_RETURN_TRACE',
+    #!!!!!
     '501':'CMD_VERSION',
     '502':'CMD_RETURN',
     '901':'CMD_ERROR',

@@ -114,11 +114,12 @@ def create_signature_message(signature, return_info=None):
 
     cmdTextList.append('<call_signature file="%s" name="%s">' % (pydevd_vars.makeValidXmlValue(signature.file), pydevd_vars.makeValidXmlValue(signature.name)))
 
-    for arg in signature.args:
-        cmdTextList.append('<arg name="%s" type="%s"></arg>' % (pydevd_vars.makeValidXmlValue(arg[0]), pydevd_vars.makeValidXmlValue(arg[1])))
-
     if return_info:
         cmdTextList.append('<return type="%s"></return>' % pydevd_vars.makeValidXmlValue(return_info))
+
+    else:
+        for arg in signature.args:
+            cmdTextList.append('<arg name="%s" type="%s"></arg>' % (pydevd_vars.makeValidXmlValue(arg[0]), pydevd_vars.makeValidXmlValue(arg[1])))
 
     cmdTextList.append("</call_signature></xml>")
     cmdText = ''.join(cmdTextList)
@@ -129,12 +130,13 @@ def create_signature_message(signature, return_info=None):
     return NetCommand(CMD_SIGNATURE_CALL_TRACE, 0, cmdText)
 
 
-def isFirstCall(dbg, frame, filename):
-    if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename) and dbg.call_signature_cache_manager:
-        signature = dbg.signature_factory.create_signature(frame)
-        return dbg.call_signature_cache_manager.is_first_call(signature)
-    else:
-        return False
+def isFirstCall(dbg, frame, filename): # we use it only if dbg has return_cache_manager
+    if dbg.return_signature_cache_manager:
+        if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename) and dbg.call_signature_cache_manager:
+            signature = dbg.signature_factory.create_signature(frame)
+            return dbg.call_signature_cache_manager.is_first_call(signature)
+
+    return False
 
 
 def sendSignatureCallTrace(dbg, frame, filename):
@@ -149,13 +151,10 @@ def sendSignatureCallTrace(dbg, frame, filename):
                 dbg.writer.addCommand(create_signature_message(signature))
 
 
-def sendSignatureReturnTrace(dbg, frame, filename, return_value):
-    if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename):
+def sendSignatureReturnTrace(dbg, frame, filename, return_value): #send return_type only if return_signature_cache_manager exists
+    if dbg.signature_factory and dbg.signature_factory.is_in_scope(filename) and dbg.return_signature_cache_manager:
         signature = dbg.signature_factory.create_signature(frame)
         return_info = get_type_of_value(return_value)
-        if dbg.call_signature_cache_manager:
-            if not dbg.call_signature_cache_manager.is_repetition(signature, return_info):
-                dbg.call_signature_cache_manager.add_return_info(signature, return_info)
-                dbg.writer.addCommand(create_signature_message(signature, return_info))
-        else:
+        if not dbg.return_signature_cache_manager.is_repetition(signature, return_info):
+            dbg.return_signature_cache_manager.add(signature, return_info)
             dbg.writer.addCommand(create_signature_message(signature, return_info))
