@@ -124,8 +124,8 @@ def create_signature_message(signature, return_info=None):
     cmdTextList.append("</call_signature></xml>")
     cmdText = ''.join(cmdTextList)
 
-    myfile = open('/home/user/txt', 'a')
-    myfile.writelines(cmdText + '\n=====\n')
+    # myfile = open('/home/user/txt', 'a')
+    # myfile.writelines(cmdText + '\n=====\n')
 
     return NetCommand(CMD_SIGNATURE_CALL_TRACE, 0, cmdText)
 
